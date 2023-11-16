@@ -19,12 +19,16 @@ fn main() {
 
     let mut command = Command::new("g++");
     let comp = command
+        .stdout(std::process::Stdio::inherit())
+        .stderr(std::process::Stdio::inherit())
         .args([
             OsString::from("-o"), OsString::from({
                 let mut temp = project_root.clone();
                 temp.push(project_root.file_name().unwrap());
                 temp
-            })
+            }),
+            OsString::from("-fmodules-ts"),
+            OsString::from("-std=c++20")
         ]);
 
     let cpps = std::fs::read_dir(src_dir)
@@ -37,8 +41,11 @@ fn main() {
         }
     }
 
+//    let out =
     comp.output()
         .expect("Unable to find g++");
+/*
+    println!("{}", String::from_utf8(out.stdout).expect("Unreadable compiler output"));
 
 /*
     Command::new("g++")
@@ -47,5 +54,6 @@ fn main() {
         .arg("test")
         .output()
         .expect("Unable to g++");
+*/
 */
 }

@@ -1,4 +1,4 @@
-#include "lib.h"
+import wow;
 
 int main() {
     etonnant();
