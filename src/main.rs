@@ -1,5 +1,6 @@
 use std::process::Command;
 use std::ffi::{OsString, OsStr};
+use std::path::PathBuf;
 
 fn main() {
     let mut args = std::env::args_os();
@@ -8,25 +9,28 @@ fn main() {
         panic!("Error, cmaek take only one argument : the path of the root of the project");
     }
 
-    let project_root = std::fs::canonicalize(args.nth(1).unwrap())
-        .expect("Failed to find absolute path of the project root.");
+    let project_root = PathBuf::from(args.nth(1).unwrap());
+//    std::fs::canonicalize(args.nth(1).unwrap())
+//        .expect("Failed to find absolute path of the project root.");
 
-    let src_dir = {
-        let mut temp = project_root.clone();
-        temp.push("src");
-        temp
-    };
+    let src_dir = project_root.join("src");
 
+    #[cfg(target_os = "windows")]
+    let mut command = Command::new("g++.exe");
+    #[cfg(target_os = "linux")]
     let mut command = Command::new("g++");
+    println!("Ok");
     let comp = command
         .stdout(std::process::Stdio::inherit())
         .stderr(std::process::Stdio::inherit())
         .args([
-            OsString::from("-o"), OsString::from({
-                let mut temp = project_root.clone();
-                temp.push(project_root.file_name().unwrap());
-                temp
-            }),
+            OsString::from("-o"),
+            OsString::from(
+                project_root.join(project_root
+                    .canonicalize()
+                    .expect("Can't find absolute path of root")
+                    .file_name()
+                    .expect("Pas de nom"))),
             OsString::from("-fmodules-ts"),
             OsString::from("-std=c++20")
         ]);
@@ -36,9 +40,12 @@ fn main() {
 
     for cpp in cpps {
         let cpp = cpp.unwrap().path();
+        print!("found <{}>", cpp.display());
         if cpp.extension().map(|e| e.to_str()) == Some(Some("cpp")) {
+            print!(" approuved !");
             comp.arg(cpp);
         }
+        println!("");
     }
 
 //    let out =
